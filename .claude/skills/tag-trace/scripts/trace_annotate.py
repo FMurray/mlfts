@@ -31,8 +31,16 @@ def get_recent_traces(max_results: int = 10):
 
 
 def get_most_recent_trace_id() -> str:
-    """Return the trace ID of the most recent trace, or exit with error."""
-    traces = get_recent_traces(max_results=1)
+    """Return the trace ID of the most recent session trace, or exit with error."""
+    import mlflow
+
+    # Exclude env_snapshot companion traces created by skip_skill_traces.py
+    traces = mlflow.search_traces(
+        filter_string="tag.`cc_env.type` != 'env_snapshot'",
+        order_by=["timestamp_ms DESC"],
+        max_results=1,
+        return_type="list",
+    )
     if not traces:
         print("Error: No traces found in the current experiment.", file=sys.stderr)
         sys.exit(1)
