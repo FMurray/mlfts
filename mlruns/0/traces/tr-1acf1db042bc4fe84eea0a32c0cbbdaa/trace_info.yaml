@@ -1,0 +1,60 @@
+execution_duration_ms: 1196862
+request_preview: what about just any feedback at all?
+request_time: '2026-02-11T14:24:19.184Z'
+response_preview: 'Based on the docs, there''s no built-in way to query "traces that
+  have any feedback" without knowing the specific feedback name. You have to specify
+  `feedback.<name>` explicitly.
+
+
+  A couple of workarounds:
+
+
+  **1. Use a convention-based tag alongside feedback.** When you log feedback in the
+  Claude plugin, also set a tag:
+
+
+  ```python
+
+  mlflow.set_trace_tag(trace_id=trace_id, key="has_feedback", value="true")
+
+  mlflow.log_feedback(trace_id=trace_id, name="rating", value=True, ...)
+
+  ```
+
+
+  Then query broadly:
+
+
+  ```python
+
+  mlflow.search_traces(filter_string="tag.has_feedback = ''true''")
+
+  ```
+
+
+  **2. Use the `MlflowClient` to fetch traces and filter client-side.** The `Trace`
+  object has an `info.assessments` list you can check:
+
+
+  ```python
+
+  from mlflow import MlflowClient
+
+
+  client = MlflowClient()
+
+  traces = client.search_traces(experiment_ids=["1"])
+
+  traces_with_feedback = [t for t in traces if t.info.assessments]
+
+  ```
+
+
+  This is less efficient (pulls all traces then filters), but it works without knowing
+  feedback n'
+state: OK
+trace_id: tr-1acf1db042bc4fe84eea0a32c0cbbdaa
+trace_location:
+  mlflow_experiment:
+    experiment_id: '0'
+  type: MLFLOW_EXPERIMENT

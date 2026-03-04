@@ -1,0 +1,14 @@
+execution_duration_ms: 2761
+request_preview: 'c '
+request_time: '2026-02-06T19:08:01.086Z'
+response_preview: '
+
+
+  Login successful! You''re now authenticated and ready to go. How can I help you
+  today?'
+state: OK
+trace_id: tr-bd7a94bb0d88511ed54b557f6bb3760e
+trace_location:
+  mlflow_experiment:
+    experiment_id: '0'
+  type: MLFLOW_EXPERIMENT

@@ -1,0 +1,8 @@
+{
+  "name": "mlfts",
+  "description": "MLflow with Databricks and Unity Catalog Trace Storage plugin",
+  "version": "0.1.0",
+  "author": {
+    "name": "Forrest Murray"
+  }
+}

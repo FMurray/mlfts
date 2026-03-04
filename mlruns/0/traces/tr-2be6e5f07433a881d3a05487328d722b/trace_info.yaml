@@ -1,0 +1,10 @@
+execution_duration_ms: 133
+request_preview: 'c '
+request_time: '2026-02-06T19:07:25.500Z'
+response_preview: Not logged in · Please run /login
+state: OK
+trace_id: tr-2be6e5f07433a881d3a05487328d722b
+trace_location:
+  mlflow_experiment:
+    experiment_id: '0'
+  type: MLFLOW_EXPERIMENT

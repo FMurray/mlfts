@@ -1,0 +1,31 @@
+execution_duration_ms: 145853
+request_preview: "Base directory for this skill: /Users/forrest.murray/Documents/mlfts/.claude/skills/searching-mlflow-docs\n\n#
+  MLflow Documentation Search\n\n## Workflow\n\n1. Fetch `https://mlflow.org/docs/latest/llms.txt`
+  to find relevant page paths\n2. Fetch the `.md` file at the identified path\n3.
+  Present results with verbatim code examples\n\n## Step 1: Fetch llms.txt Index\n\n```\nWebFetch(\n
+  \ url: \"https://mlflow.org/docs/latest/llms.txt\",\n  prompt: \"Find links or references
+  to [TOPIC]. List all relevant URLs.\"\n)\n```\n\n## Step 2: Fetch Target Documentation\n\nUse
+  the path from Step 1, always with `.md` extension:\n\n```\nWebFetch(\n  url: \"https://mlflow.org/docs/latest/[path].md\",\n
+  \ prompt: \"Return all code blocks verbatim. Do not summarize.\"\n)\n```\n\n## Anti-Patterns\n\n**Do
+  not use `.html` files** — Fetch `.md` source files only.\n\n**Do not use WebSearch**
+  — Always start from llms.txt; web search returns outdated or third-party content.\n\n**Do
+  not use vague prompts** — \"Extract complete documentation\" allows summariz"
+request_time: '2026-02-11T19:22:23.248Z'
+response_preview: "Here's what MLflow provides about the user who gave feedback/assessments
+  on a trace:\n\n**The `AssessmentSource` object** has two fields:\n\n| Field | Description
+  |\n|---|---|\n| `source_type` | One of `HUMAN`, `LLM_JUDGE`, or `CODE` |\n| `source_id`
+  | A free-form string identifier for the feedback provider |\n\n**There is no dedicated
+  email field.** Instead, the `source_id` field is where you put the user's identity
+  — it can be a name, account ID, email, or any identifier you choose. For example:\n\n```python\nhuman_source
+  = AssessmentSource(\n    source_type=AssessmentSourceType.HUMAN, source_id=\"expert@company.com\"\n)\n```\n\n**When
+  feedback is given via the MLflow UI**, MLflow automatically attaches your user information
+  (from your authenticated session) as the `source_id`.\n\n**When feedback is given
+  programmatically**, you control what goes in `source_id` — MLflow doesn't auto-populate
+  it. You can also add arbitrary metadata for richer audit trails:\n\n```python\nmetadata={\n
+  \   \"reviewer_expertise\": \""
+state: OK
+trace_id: tr-54e5d4daf0f3d3be4a8c5491668e352a
+trace_location:
+  mlflow_experiment:
+    experiment_id: '0'
+  type: MLFLOW_EXPERIMENT

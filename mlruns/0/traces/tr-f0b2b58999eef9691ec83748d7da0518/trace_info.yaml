@@ -1,0 +1,44 @@
+execution_duration_ms: 7823440
+request_preview: use the field-eng config profile
+request_time: '2026-02-11T14:49:50.544Z'
+response_preview: 'It all works. Here''s what we confirmed against the Databricks
+  tracking server:
+
+
+  ### Results
+
+
+  | Search Filter | Found | Expected | Notes |
+
+  |---|---|---|---|
+
+  | `tag.has_feedback = ''true''` | 6 | Correct | 2 per run x 3 runs = 6 tagged traces
+  |
+
+  | `tag.feedback_user_rating = ''positive''` | 2 | Correct | 1 per run x 2 runs |
+
+  | `tag.feedback_user_rating = ''negative''` | 2 | Correct | 1 per run x 2 runs |
+
+  | All traces | 11 | Correct | Includes untagged traces |
+
+
+  ### Key Takeaways
+
+
+  1. **`mlflow.log_feedback()` works on Databricks** — feedback is stored in the `assessments`
+  column of the returned DataFrame
+
+  2. **`feedback.<name>` search filter is NOT supported** on this Databricks workspace
+  — the valid filter tables are `trace`, `tag`, and `request_metadata`
+
+  3. **The tag-based approach works reliably** — `tag.has_feedback = ''true''` gives
+  you a clean way to find all traces with any feedback, and `tag.feedback_<name> =
+  ''<value>''` lets you filter by specific feedback values
+
+  4. **You must `flush_trace_'
+state: OK
+trace_id: tr-f0b2b58999eef9691ec83748d7da0518
+trace_location:
+  mlflow_experiment:
+    experiment_id: '0'
+  type: MLFLOW_EXPERIMENT
