@@ -88,7 +88,8 @@ def _apply_env_to_trace(session_id, env_data):
     """Find the trace for this session and apply environment tags + prompt linkage.
 
     Sets trace tags for short metadata (git SHA, hashes).
-    Links the CLAUDE.md prompt version to the trace via Prompt Registry.
+    Creates a companion 'env_snapshot' trace with auto-linked prompt
+    (load_prompt inside a traced context triggers automatic linking).
     """
     try:
         import mlflow
@@ -97,7 +98,7 @@ def _apply_env_to_trace(session_id, env_data):
         client = MlflowClient()
 
         traces = mlflow.search_traces(
-            filter_string=f"metadata.`mlflow.trace.session` = '{session_id}'",
+            filter_string=f"metadata.mlflow.trace.session = '{session_id}'",
             order_by=["timestamp_ms DESC"],
             max_results=1,
         )
@@ -106,22 +107,62 @@ def _apply_env_to_trace(session_id, env_data):
 
         trace_id = traces.iloc[0]["trace_id"]
 
-        # Short metadata as trace tags
+        # Short metadata as trace tags on the session trace
         for key in ("git_sha", "git_dirty", "claude_md_hash", "skills_hash", "snapshot_timestamp"):
             value = env_data.get(key, "none")
             client.set_trace_tag(trace_id, f"cc_env.{key}", str(value))
 
-        # Link CLAUDE.md prompt version to trace (replaces content-in-tag)
         prompt_name = env_data.get("prompt_name")
         prompt_version = env_data.get("prompt_version")
         if prompt_name and prompt_version:
-            try:
-                pv = client.get_prompt_version(prompt_name, prompt_version)
-                client.link_prompt_versions_to_trace([pv], trace_id)
-            except Exception:
-                pass
+            prompt_uri = f"prompts:/{prompt_name}/{prompt_version}"
+            client.set_trace_tag(trace_id, "cc_env.prompt_uri", prompt_uri)
+
+            # Create a companion trace that auto-links the prompt via load_prompt().
+            # This is needed because the session trace is created by stop_hook_handler
+            # in a subprocess, and we can't inject load_prompt into its trace context.
+            _create_env_snapshot_trace(client, session_id, trace_id, prompt_uri, env_data)
     except Exception:
         pass  # Never let enrichment failures break the hook
+
+
+def _create_env_snapshot_trace(client, session_id, session_trace_id, prompt_uri, env_data):
+    """Create a lightweight companion trace with auto-linked prompt.
+
+    Calling load_prompt() inside mlflow.start_span() triggers automatic
+    prompt-to-trace linking that's visible in the Databricks UI.
+    """
+    try:
+        import mlflow
+
+        @mlflow.trace(name="env_snapshot", span_type="UNKNOWN")
+        def _snapshot():
+            # load_prompt inside a traced context triggers auto-linking
+            mlflow.genai.load_prompt(prompt_uri)
+            return {
+                "session_id": session_id,
+                "session_trace_id": session_trace_id,
+                "git_sha": env_data.get("git_sha", "none"),
+                "claude_md_hash": env_data.get("claude_md_hash", "none"),
+            }
+
+        _snapshot()
+
+        # Tag the companion trace so it can be found alongside the session trace
+        companion_traces = mlflow.search_traces(
+            order_by=["timestamp_ms DESC"],
+            max_results=1,
+        )
+        if not companion_traces.empty:
+            companion_id = companion_traces.iloc[0]["trace_id"]
+            if companion_id != session_trace_id:
+                client.set_trace_tag(companion_id, "cc_env.type", "env_snapshot")
+                client.set_trace_tag(companion_id, "cc_env.session_id", session_id)
+                client.set_trace_tag(companion_id, "cc_env.session_trace_id", session_trace_id)
+                # Also cross-reference from session trace
+                client.set_trace_tag(session_trace_id, "cc_env.snapshot_trace_id", companion_id)
+    except Exception:
+        pass
 
 
 def main():

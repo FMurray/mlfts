@@ -123,7 +123,9 @@ def _register_claude_md_prompt(
     try:
         import mlflow.genai
 
-        prompt_name = "claude-md"
+        prompt_name = os.environ.get(
+            "CC_ENV_PROMPT_NAME", "main.default.claude_md"
+        )
         commit_msg = f"git:{git_sha[:8]}" if git_sha != "none" else "no-git"
 
         # Check if latest version already has this hash
