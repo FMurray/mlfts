@@ -5,6 +5,7 @@
   "author": { "name": "Forrest Murray" },
   "homepage": "https://github.com/FMurray/mlfts",
   "repository": "https://github.com/FMurray/mlfts",
+  "skills": ["./plugin-skills/"],
   "hooks": {
     "SessionStart": [
       {
