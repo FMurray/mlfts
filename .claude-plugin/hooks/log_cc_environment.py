@@ -159,9 +159,29 @@ def _write_sidecar(project_dir: str, session_id: str, env_data: dict):
         json.dump(env_data, f)
 
 
+def _check_required_env():
+    """Warn if required environment variables are missing."""
+    missing = []
+    for var in ("MLFLOW_TRACKING_URI", "MLFLOW_EXPERIMENT_NAME"):
+        if not os.environ.get(var):
+            missing.append(var)
+    if not os.environ.get("MLFLOW_CLAUDE_TRACING_ENABLED"):
+        missing.append("MLFLOW_CLAUDE_TRACING_ENABLED")
+    if missing:
+        print(
+            f"[mlfts] Missing environment variables: {', '.join(missing)}. "
+            "Add them to .claude/settings.local.json under \"environment\".",
+            file=sys.stderr,
+        )
+    return not missing
+
+
 def main():
     try:
         hook_input = json.loads(sys.stdin.read())
+        if not _check_required_env():
+            print(json.dumps({"continue": True}))
+            return
         session_id = hook_input.get("session_id", "unknown")
         project_dir = os.environ.get(
             "CLAUDE_PROJECT_DIR", hook_input.get("cwd", os.getcwd())
