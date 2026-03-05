@@ -1,15 +1,18 @@
 {
   "name": "mlfts",
-  "owner": { "name": "Forrest Murray" },
+  "description": "MLflow tracing & evaluation for AI coding agent sessions",
+  "owner": {
+    "name": "Forrest Murray"
+  },
   "plugins": [
     {
       "name": "mlfts",
-      "source": {
-        "source": "github",
-        "repo": "FMurray/mlfts"
-      },
       "description": "MLflow tracing & evaluation for AI coding agent sessions",
-      "version": "0.1.0"
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "Forrest Murray"
+      }
     }
   ]
 }

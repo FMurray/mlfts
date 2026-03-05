@@ -3,6 +3,8 @@
   "description": "MLflow tracing & evaluation for AI coding agent sessions",
   "version": "0.1.0",
   "author": { "name": "Forrest Murray" },
+  "homepage": "https://github.com/FMurray/mlfts",
+  "repository": "https://github.com/FMurray/mlfts",
   "hooks": {
     "SessionStart": [
       {
