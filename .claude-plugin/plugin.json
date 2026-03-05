@@ -26,8 +26,5 @@
         ]
       }
     ]
-  },
-  "environment": {
-    "MLFLOW_CLAUDE_TRACING_ENABLED": "true"
   }
 }
