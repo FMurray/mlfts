@@ -4,7 +4,10 @@
   "plugins": [
     {
       "name": "mlfts",
-      "source": ".",
+      "source": {
+        "source": "github",
+        "repo": "FMurray/mlfts"
+      },
       "description": "MLflow tracing & evaluation for AI coding agent sessions",
       "version": "0.1.0"
     }
