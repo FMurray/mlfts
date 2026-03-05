@@ -1,27 +1,2 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run python \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/log_cc_environment.py"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run python \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skip_skill_traces.py -- uv run python -c \"from mlflow.claude_code.hooks import stop_hook_handler; stop_hook_handler()\""
-          }
-        ]
-      }
-    ]
-  },
-  "environment": {
-    "MLFLOW_CLAUDE_TRACING_ENABLED": "true"
-  }
 }

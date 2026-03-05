@@ -1,8 +1,31 @@
 {
   "name": "mlfts",
-  "description": "MLflow with Databricks and Unity Catalog Trace Storage plugin",
+  "description": "MLflow tracing & evaluation for AI coding agent sessions",
   "version": "0.1.0",
-  "author": {
-    "name": "Forrest Murray"
+  "author": { "name": "Forrest Murray" },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/log_cc_environment.py\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run python \"${CLAUDE_PLUGIN_ROOT}/hooks/skip_skill_traces.py\" -- uv run python -c \"from mlflow.claude_code.hooks import stop_hook_handler; stop_hook_handler()\""
+          }
+        ]
+      }
+    ]
+  },
+  "environment": {
+    "MLFLOW_CLAUDE_TRACING_ENABLED": "true"
   }
 }
