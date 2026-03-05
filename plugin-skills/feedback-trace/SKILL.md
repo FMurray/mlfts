@@ -5,28 +5,28 @@ description: Logs feedback (assessments) on an MLflow trace. Use when the user w
 
 # Log Feedback on an MLflow Trace
 
-Run `scripts/trace_annotate.py` to log human feedback (assessments) on traces.
+Run `${CLAUDE_SKILL_DIR}/scripts/trace_annotate.py` to log human feedback (assessments) on traces.
 
 ## Examples
 
 **Positive feedback on the most recent trace:**
 ```bash
-uv run python scripts/trace_annotate.py feedback --name thumbs_up --value true
+uv run python ${CLAUDE_SKILL_DIR}/scripts/trace_annotate.py feedback --name thumbs_up --value true
 ```
 
 **Quality rating with rationale:**
 ```bash
-uv run python scripts/trace_annotate.py feedback --name quality --value good --rationale "great answer"
+uv run python ${CLAUDE_SKILL_DIR}/scripts/trace_annotate.py feedback --name quality --value good --rationale "great answer"
 ```
 
 **Feedback on a specific trace:**
 ```bash
-uv run python scripts/trace_annotate.py feedback --trace-id tr-abc123 --name quality --value poor --rationale "hallucinated the API endpoint"
+uv run python ${CLAUDE_SKILL_DIR}/scripts/trace_annotate.py feedback --trace-id tr-abc123 --name quality --value poor --rationale "hallucinated the API endpoint"
 ```
 
 **List recent traces (to find a trace ID):**
 ```bash
-uv run python scripts/trace_annotate.py list
+uv run python ${CLAUDE_SKILL_DIR}/scripts/trace_annotate.py list
 ```
 
 ## Arguments

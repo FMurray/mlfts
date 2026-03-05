@@ -5,28 +5,28 @@ description: Tags an MLflow trace or session with key-value pairs. Use when the 
 
 # Tag an MLflow Trace
 
-Run `scripts/trace_annotate.py` to add key-value tags to traces.
+Run `${CLAUDE_SKILL_DIR}/scripts/trace_annotate.py` to add key-value tags to traces.
 
 ## Examples
 
 **Tag the most recent trace:**
 ```bash
-uv run python scripts/trace_annotate.py tag quality=good
+uv run python ${CLAUDE_SKILL_DIR}/scripts/trace_annotate.py tag quality=good
 ```
 
 **Multiple tags:**
 ```bash
-uv run python scripts/trace_annotate.py tag sprint=42 reviewer=alice bug=true
+uv run python ${CLAUDE_SKILL_DIR}/scripts/trace_annotate.py tag sprint=42 reviewer=alice bug=true
 ```
 
 **Tag a specific trace:**
 ```bash
-uv run python scripts/trace_annotate.py tag --trace-id tr-abc123 quality=good
+uv run python ${CLAUDE_SKILL_DIR}/scripts/trace_annotate.py tag --trace-id tr-abc123 quality=good
 ```
 
 **List recent traces (to find a trace ID):**
 ```bash
-uv run python scripts/trace_annotate.py list
+uv run python ${CLAUDE_SKILL_DIR}/scripts/trace_annotate.py list
 ```
 
 ## Arguments
