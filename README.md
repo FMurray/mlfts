@@ -1,10 +1,10 @@
 # mlfts — MLflow Tracing & Evaluation for AI Coding Agents
 
-Bring LLMOps observability to AI coding assistants. **mlfts** automatically traces every Claude Code session into Databricks Unity Catalog, then provides tools to evaluate, judge, and improve agent quality over time.
+`mlfts` extends mlflow tracing for coding agents (currently Claude Code) with tools to evaluate, judge, and improve agent quality over time.
 
 ## What It Does
 
-**Trace** — Every Claude Code session is automatically captured as an MLflow trace, enriched with git state, prompt versions, and environment metadata.
+**Trace** — Enriches existing traces with git state, prompt versions, and environment metadata for reproduibility.
 
 **Version** — Your `CLAUDE.md` instructions are registered as versioned prompts in MLflow's Prompt Registry, linked to each session trace. Correlate quality changes with prompt changes.
 

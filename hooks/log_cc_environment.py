@@ -20,12 +20,12 @@ def snapshot_environment(project_dir: str) -> dict:
     """Capture environment state for the given project directory.
 
     Returns a dict with git_sha, git_dirty, claude_md_hash,
-    claude_md_content, skills_hash, snapshot_timestamp, and
+    claude_md_content, skills_hash, skills_prompts, snapshot_timestamp, and
     prompt registration info (prompt_name, prompt_version).
     """
     git_sha, git_dirty = _git_state(project_dir)
     claude_md_hash, claude_md_content = _claude_md_state(project_dir)
-    skills_hash = _skills_hash(project_dir)
+    skills_hash, skills_prompts = _skills_state(project_dir)
     prompt_name, prompt_version = _register_claude_md_prompt(
         claude_md_content, claude_md_hash, git_sha
     )
@@ -36,6 +36,7 @@ def snapshot_environment(project_dir: str) -> dict:
         "claude_md_hash": claude_md_hash,
         "claude_md_content": claude_md_content,
         "skills_hash": skills_hash,
+        "skills_prompts": skills_prompts,
         "prompt_name": prompt_name,
         "prompt_version": prompt_version,
         "snapshot_timestamp": datetime.now(timezone.utc).isoformat(),
@@ -80,33 +81,83 @@ def _claude_md_state(project_dir: str) -> tuple[str, str]:
         return "none", ""
 
 
-def _skills_hash(project_dir: str) -> str:
-    """SHA-256 of sorted SKILL.md files under skills/. 'none' if no skills dir."""
-    skills_dir = os.path.join(project_dir, "skills")
-    if not os.path.isdir(skills_dir):
-        return "none"
+def _skills_state(project_dir: str) -> tuple[str, dict[str, str]]:
+    """Return (hash, prompts) for discovered SKILL.md files.
+
+    Searches:
+    - .claude/skills/
+    - optional extra directories from CC_ENV_EXTRA_SKILLS_DIRS
+      (os.pathsep-separated; relative paths resolved from project dir)
+    """
+    skill_roots = _discover_skill_roots(project_dir)
 
     try:
         parts = []
-        for root, _dirs, files in os.walk(skills_dir):
-            for fname in files:
-                if fname == "SKILL.md":
-                    fpath = os.path.join(root, fname)
-                    relpath = os.path.relpath(fpath, skills_dir)
-                    try:
-                        with open(fpath, encoding="utf-8") as f:
-                            parts.append((relpath, f.read()))
-                    except Exception:
-                        continue
+        prompts = {}
+
+        for root_label, skills_dir in skill_roots:
+            if not os.path.isdir(skills_dir):
+                continue
+
+            for root, _dirs, files in os.walk(skills_dir):
+                for fname in files:
+                    if fname == "SKILL.md":
+                        fpath = os.path.join(root, fname)
+                        relpath = os.path.relpath(fpath, skills_dir)
+                        prompt_key = f"{root_label}/{relpath}"
+                        try:
+                            with open(fpath, encoding="utf-8") as f:
+                                content = f.read()
+                                parts.append((prompt_key, content))
+                                prompts[prompt_key] = content
+                        except Exception:
+                            continue
 
         if not parts:
-            return "none"
+            return "none", {}
 
         parts.sort(key=lambda t: t[0])
         combined = "\0".join(f"{relpath}\n{content}" for relpath, content in parts)
-        return hashlib.sha256(combined.encode("utf-8")).hexdigest()
+        return hashlib.sha256(combined.encode("utf-8")).hexdigest(), prompts
     except Exception:
-        return "none"
+        return "none", {}
+
+
+def _discover_skill_roots(project_dir: str) -> list[tuple[str, str]]:
+    """Discover directories that may contain SKILL.md files."""
+    roots = [(".claude/skills", os.path.join(project_dir, ".claude", "skills"))]
+
+    for extra in _extra_skill_dirs_from_env(project_dir):
+        roots.append((f"env:{extra}", extra))
+
+    # Keep first occurrence for each absolute path
+    seen = set()
+    unique_roots = []
+    for label, path in roots:
+        apath = os.path.abspath(path)
+        if apath in seen:
+            continue
+        seen.add(apath)
+        unique_roots.append((label, apath))
+    return unique_roots
+
+
+def _extra_skill_dirs_from_env(project_dir: str) -> list[str]:
+    """Parse CC_ENV_EXTRA_SKILLS_DIRS into absolute directory paths."""
+    raw = os.environ.get("CC_ENV_EXTRA_SKILLS_DIRS", "")
+    if not raw:
+        return []
+
+    paths = []
+    for entry in raw.split(os.pathsep):
+        cleaned = entry.strip()
+        if not cleaned:
+            continue
+        if os.path.isabs(cleaned):
+            paths.append(os.path.abspath(cleaned))
+        else:
+            paths.append(os.path.abspath(os.path.join(project_dir, cleaned)))
+    return paths
 
 
 def _register_claude_md_prompt(
@@ -123,9 +174,7 @@ def _register_claude_md_prompt(
     try:
         import mlflow.genai
 
-        prompt_name = os.environ.get(
-            "CC_ENV_PROMPT_NAME", "main.default.claude_md"
-        )
+        prompt_name = os.environ.get("CC_ENV_PROMPT_NAME", "main.default.claude_md")
         commit_msg = f"git:{git_sha[:8]}" if git_sha != "none" else "no-git"
 
         # Check if latest version already has this hash
@@ -170,7 +219,7 @@ def _check_required_env():
     if missing:
         print(
             f"[mlfts] Missing environment variables: {', '.join(missing)}. "
-            "Add them to .claude/settings.local.json under \"environment\".",
+            'Add them to .claude/settings.local.json under "environment".',
             file=sys.stderr,
         )
     return not missing

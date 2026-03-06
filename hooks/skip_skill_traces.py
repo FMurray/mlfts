@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pre-filter for the MLflow Stop hook: skip tracing for specific skill invocations.
+"""Pre-filter for the MLflow Stop hook: skip tracing for this plugins' skills.
 
 This script is a transparent proxy. It reads the Claude Code hook input,
 checks if the current turn is an invocation of an MLflow skill that would
@@ -50,7 +50,8 @@ def _should_skip(data):
         content = entry.get("message", {}).get("content", "")
         if isinstance(content, list):
             text = "\n".join(
-                p.get("text", "") for p in content
+                p.get("text", "")
+                for p in content
                 if isinstance(p, dict) and p.get("type") == "text"
             )
         else:
@@ -72,7 +73,9 @@ def _should_skip(data):
 
 def _enrich_trace_from_sidecar(project_dir, session_id):
     """Read and delete the environment sidecar file. Returns env data dict or None."""
-    sidecar_path = os.path.join(project_dir, ".claude", "mlflow", f"env_{session_id}.json")
+    sidecar_path = os.path.join(
+        project_dir, ".claude", "mlflow", f"env_{session_id}.json"
+    )
     try:
         with open(sidecar_path) as f:
             env_data = json.load(f)
@@ -108,7 +111,13 @@ def _apply_env_to_trace(session_id, env_data):
         trace_id = traces.iloc[0]["trace_id"]
 
         # Short metadata as trace tags on the session trace
-        for key in ("git_sha", "git_dirty", "claude_md_hash", "skills_hash", "snapshot_timestamp"):
+        for key in (
+            "git_sha",
+            "git_dirty",
+            "claude_md_hash",
+            "skills_hash",
+            "snapshot_timestamp",
+        ):
             value = env_data.get(key, "none")
             client.set_trace_tag(trace_id, f"cc_env.{key}", str(value))
 
@@ -121,12 +130,16 @@ def _apply_env_to_trace(session_id, env_data):
             # Create a companion trace that auto-links the prompt via load_prompt().
             # This is needed because the session trace is created by stop_hook_handler
             # in a subprocess, and we can't inject load_prompt into its trace context.
-            _create_env_snapshot_trace(client, session_id, trace_id, prompt_uri, env_data)
+            _create_env_snapshot_trace(
+                client, session_id, trace_id, prompt_uri, env_data
+            )
     except Exception:
         pass  # Never let enrichment failures break the hook
 
 
-def _create_env_snapshot_trace(client, session_id, session_trace_id, prompt_uri, env_data):
+def _create_env_snapshot_trace(
+    client, session_id, session_trace_id, prompt_uri, env_data
+):
     """Create a lightweight companion trace with auto-linked prompt.
 
     Calling load_prompt() inside mlflow.start_span() triggers automatic
@@ -158,9 +171,13 @@ def _create_env_snapshot_trace(client, session_id, session_trace_id, prompt_uri,
             if companion_id != session_trace_id:
                 client.set_trace_tag(companion_id, "cc_env.type", "env_snapshot")
                 client.set_trace_tag(companion_id, "cc_env.session_id", session_id)
-                client.set_trace_tag(companion_id, "cc_env.session_trace_id", session_trace_id)
+                client.set_trace_tag(
+                    companion_id, "cc_env.session_trace_id", session_trace_id
+                )
                 # Also cross-reference from session trace
-                client.set_trace_tag(session_trace_id, "cc_env.snapshot_trace_id", companion_id)
+                client.set_trace_tag(
+                    session_trace_id, "cc_env.snapshot_trace_id", companion_id
+                )
     except Exception:
         pass
 
@@ -175,7 +192,7 @@ def main():
 
     # Delegate to the real hook command (everything after --)
     separator = sys.argv.index("--") if "--" in sys.argv else 0
-    real_cmd = sys.argv[separator + 1:]
+    real_cmd = sys.argv[separator + 1 :]
     if not real_cmd:
         print(json.dumps({"continue": True}))
         return
